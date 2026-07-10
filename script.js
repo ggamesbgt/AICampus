@@ -1,272 +1,272 @@
 // ============================================================
-// Helpdesk UEU Chatbot - Knowledge Base Version
-// Membaca data/index.json lalu memuat seluruh file JSON pengetahuan
-// Cocok untuk GitHub Pages
+// UEU AI Helpdesk - script.js
+// Versi kompatibel dengan index.html:
+// - chatMessages
+// - userInput
+// - chatForm
+// - quick questions
+// Membaca data/index.json lalu seluruh knowledge JSON
 // ============================================================
 
 let knowledge = [];
 
 // ------------------------------------------------------------
-// 1. Load semua file knowledge dari data/index.json
+// 1. Load knowledge base dari data/index.json
 // ------------------------------------------------------------
 async function loadKnowledge() {
-    try {
-        const indexResponse = await fetch("data/index.json");
+  try {
+    const indexResponse = await fetch("data/index.json");
 
-        if (!indexResponse.ok) {
-            throw new Error("Gagal membaca data/index.json");
-        }
-
-        const fileList = await indexResponse.json();
-
-        const allData = await Promise.all(
-            fileList.map(async (fileName) => {
-                const response = await fetch("data/" + fileName);
-
-                if (!response.ok) {
-                    console.warn("File tidak ditemukan:", fileName);
-                    return [];
-                }
-
-                return await response.json();
-            })
-        );
-
-        knowledge = allData.flat();
-
-        console.log("Knowledge loaded:", knowledge.length, "items");
-
-        addBotMessage(
-            "Halo, saya Helpdesk UEU. Silakan tanyakan informasi akademik, pedoman akademik, pembimbingan akademik, kemahasiswaan, konseling, atau layanan kampus lainnya."
-        );
-
-    } catch (error) {
-        console.error(error);
-        addBotMessage(
-            "Maaf, knowledge base belum berhasil dimuat. Pastikan file data/index.json dan file JSON lain sudah berada di folder data."
-        );
+    if (!indexResponse.ok) {
+      throw new Error("Gagal membaca data/index.json");
     }
+
+    const fileList = await indexResponse.json();
+
+    const allData = await Promise.all(
+      fileList.map(async (fileName) => {
+        try {
+          const response = await fetch("data/" + fileName);
+
+          if (!response.ok) {
+            console.warn("File knowledge tidak ditemukan:", fileName);
+            return [];
+          }
+
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
+        } catch (err) {
+          console.warn("Gagal membaca file:", fileName, err);
+          return [];
+        }
+      })
+    );
+
+    knowledge = allData.flat();
+
+    console.log("Knowledge loaded:", knowledge.length, "items");
+
+    addBotMessage(
+      `Knowledge base berhasil dimuat: <strong>${knowledge.length}</strong> item. Silakan ajukan pertanyaan seputar pedoman akademik, pembimbingan akademik, konseling, kemahasiswaan, atau layanan kampus.`
+    );
+
+  } catch (error) {
+    console.error(error);
+    addBotMessage(
+      "Maaf, knowledge base belum berhasil dimuat. Pastikan file <strong>data/index.json</strong> dan seluruh file JSON sudah berada di folder <strong>data</strong>."
+    );
+  }
 }
 
 // ------------------------------------------------------------
 // 2. Normalisasi teks
 // ------------------------------------------------------------
 function normalizeText(text) {
-    return String(text || "")
-        .toLowerCase()
-        .replace(/[^\w\sà-ž]/gi, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\sà-ž]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // ------------------------------------------------------------
-// 3. Hitung skor kecocokan sederhana
+// 3. Hitung skor kecocokan
 // ------------------------------------------------------------
 function calculateScore(userQuestion, item) {
-    const q = normalizeText(userQuestion);
-    const words = q.split(" ").filter(w => w.length > 2);
+  const q = normalizeText(userQuestion);
+  const words = q.split(" ").filter(w => w.length > 2);
 
-    const itemQuestions = Array.isArray(item.pertanyaan)
-        ? item.pertanyaan.join(" ")
-        : String(item.pertanyaan || "");
+  const itemQuestions = Array.isArray(item.pertanyaan)
+    ? item.pertanyaan.join(" ")
+    : String(item.pertanyaan || "");
 
-    const searchableText = normalizeText([
-        item.kategori || "",
-        item.topik || "",
-        itemQuestions,
-        item.jawaban || "",
-        item.sumber || ""
-    ].join(" "));
+  const searchableText = normalizeText([
+    item.kategori || "",
+    item.topik || "",
+    itemQuestions,
+    item.jawaban || "",
+    item.sumber || ""
+  ].join(" "));
 
-    let score = 0;
+  let score = 0;
 
-    // Cocok kalimat utuh
-    if (searchableText.includes(q)) {
-        score += 50;
-    }
+  if (searchableText.includes(q)) {
+    score += 50;
+  }
 
-    // Cocok kata per kata
-    words.forEach(word => {
-        if (searchableText.includes(word)) {
-            score += 10;
-        }
-    });
+  words.forEach(word => {
+    if (searchableText.includes(word)) score += 10;
+  });
 
-    // Bonus jika cocok di daftar pertanyaan
-    const questionText = normalizeText(itemQuestions);
-    words.forEach(word => {
-        if (questionText.includes(word)) {
-            score += 15;
-        }
-    });
+  const questionText = normalizeText(itemQuestions);
+  words.forEach(word => {
+    if (questionText.includes(word)) score += 15;
+  });
 
-    // Bonus jika cocok pada topik/kategori
-    const topicText = normalizeText((item.kategori || "") + " " + (item.topik || ""));
-    words.forEach(word => {
-        if (topicText.includes(word)) {
-            score += 10;
-        }
-    });
+  const topicText = normalizeText((item.kategori || "") + " " + (item.topik || ""));
+  words.forEach(word => {
+    if (topicText.includes(word)) score += 10;
+  });
 
-    return score;
+  return score;
 }
 
 // ------------------------------------------------------------
 // 4. Cari jawaban terbaik
 // ------------------------------------------------------------
 function searchKnowledge(userQuestion) {
-    if (!knowledge || knowledge.length === 0) {
-        return null;
-    }
+  if (!knowledge || knowledge.length === 0) return null;
 
-    const results = knowledge
-        .map(item => ({
-            item,
-            score: calculateScore(userQuestion, item)
-        }))
-        .filter(result => result.score > 0)
-        .sort((a, b) => b.score - a.score);
+  const results = knowledge
+    .map(item => ({
+      item,
+      score: calculateScore(userQuestion, item)
+    }))
+    .filter(result => result.score > 0)
+    .sort((a, b) => b.score - a.score);
 
-    if (results.length === 0) {
-        return null;
-    }
+  if (results.length === 0) return null;
+  if (results[0].score < 20) return null;
 
-    // Ambang batas agar jawaban tidak terlalu asal
-    if (results[0].score < 20) {
-        return null;
-    }
+  console.log("Best result:", results[0]);
 
-    return results[0].item;
+  return results[0].item;
 }
 
 // ------------------------------------------------------------
-// 5. Format jawaban bot
+// 5. Format jawaban
 // ------------------------------------------------------------
 function formatAnswer(item) {
-    let answer = item.jawaban || "Maaf, data jawaban belum tersedia.";
+  let answer = item.jawaban || "Maaf, data jawaban belum tersedia.";
 
-    let sourceInfo = "";
+  let sourceInfo = "";
 
-    if (item.sumber) {
-        sourceInfo += `<br><br><small><strong>Sumber:</strong> ${item.sumber}`;
-    }
+  if (item.sumber) {
+    sourceInfo += `<br><br><small><strong>Sumber:</strong> ${item.sumber}`;
+  }
 
-    if (item.halaman) {
-        sourceInfo += `, halaman ${item.halaman}`;
-    }
+  if (item.halaman) {
+    sourceInfo += `, halaman ${item.halaman}`;
+  }
 
-    if (sourceInfo) {
-        sourceInfo += `</small>`;
-    }
+  if (sourceInfo) {
+    sourceInfo += `</small>`;
+  }
 
-    return answer + sourceInfo;
+  return answer + sourceInfo;
 }
 
 // ------------------------------------------------------------
-// 6. Kirim pesan user
+// 6. Kirim pesan
 // ------------------------------------------------------------
-function sendMessage() {
-    const input = document.getElementById("user-input");
-    const message = input.value.trim();
+function sendMessage(messageFromButton = null) {
+  const input = document.getElementById("userInput");
+  const message = messageFromButton || (input ? input.value.trim() : "");
 
-    if (!message) return;
+  if (!message) return;
 
-    addUserMessage(message);
-    input.value = "";
+  addUserMessage(message);
 
-    showTyping();
+  if (input) input.value = "";
 
-    setTimeout(() => {
-        removeTyping();
+  showTyping();
 
-        const result = searchKnowledge(message);
+  setTimeout(() => {
+    removeTyping();
 
-        if (result) {
-            addBotMessage(formatAnswer(result));
-        } else {
-            addBotMessage(
-                "Maaf, saya belum menemukan jawaban yang sesuai di knowledge base. Coba gunakan kata kunci lain, misalnya: KRS, cuti akademik, SKS, UTS, UAS, konseling, pembimbing akademik, atau kemahasiswaan."
-            );
-        }
-    }, 500);
+    const result = searchKnowledge(message);
+
+    if (result) {
+      addBotMessage(formatAnswer(result));
+    } else {
+      addBotMessage(
+        "Maaf, saya belum menemukan jawaban yang sesuai di knowledge base. Coba gunakan kata kunci lain, misalnya: <strong>KRS</strong>, <strong>cuti akademik</strong>, <strong>SKS</strong>, <strong>UTS</strong>, <strong>UAS</strong>, <strong>konseling</strong>, <strong>pembimbing akademik</strong>, atau <strong>kemahasiswaan</strong>."
+      );
+    }
+  }, 500);
 }
 
 // ------------------------------------------------------------
-// 7. Tambah bubble chat user
+// 7. Tambah pesan user
 // ------------------------------------------------------------
 function addUserMessage(message) {
-    const chatBox = document.getElementById("chat-box");
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
 
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "message user-message";
-    messageDiv.textContent = message;
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message user-message";
+  messageDiv.textContent = message;
 
-    chatBox.appendChild(messageDiv);
-    scrollToBottom();
+  chatBox.appendChild(messageDiv);
+  scrollToBottom();
 }
 
 // ------------------------------------------------------------
-// 8. Tambah bubble chat bot
+// 8. Tambah pesan bot
 // ------------------------------------------------------------
 function addBotMessage(message) {
-    const chatBox = document.getElementById("chat-box");
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
 
-    const messageDiv = document.createElement("div");
-    messageDiv.className = "message bot-message";
-    messageDiv.innerHTML = message;
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message bot-message";
+  messageDiv.innerHTML = message;
 
-    chatBox.appendChild(messageDiv);
-    scrollToBottom();
+  chatBox.appendChild(messageDiv);
+  scrollToBottom();
 }
 
 // ------------------------------------------------------------
 // 9. Typing indicator
 // ------------------------------------------------------------
 function showTyping() {
-    const chatBox = document.getElementById("chat-box");
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
 
-    const typingDiv = document.createElement("div");
-    typingDiv.className = "message bot-message typing";
-    typingDiv.id = "typing-indicator";
-    typingDiv.textContent = "Helpdesk UEU sedang mengetik...";
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "message bot-message typing";
+  typingDiv.id = "typing-indicator";
+  typingDiv.textContent = "Helpdesk UEU sedang mengetik...";
 
-    chatBox.appendChild(typingDiv);
-    scrollToBottom();
+  chatBox.appendChild(typingDiv);
+  scrollToBottom();
 }
 
 function removeTyping() {
-    const typing = document.getElementById("typing-indicator");
-    if (typing) {
-        typing.remove();
-    }
+  const typing = document.getElementById("typing-indicator");
+  if (typing) typing.remove();
 }
 
 // ------------------------------------------------------------
-// 10. Scroll otomatis ke bawah
+// 10. Scroll otomatis
 // ------------------------------------------------------------
 function scrollToBottom() {
-    const chatBox = document.getElementById("chat-box");
+  const chatBox = document.getElementById("chatMessages");
+  if (chatBox) {
     chatBox.scrollTop = chatBox.scrollHeight;
+  }
 }
 
 // ------------------------------------------------------------
-// 11. Enter untuk kirim pesan
+// 11. Event listener
 // ------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("user-input");
-    const button = document.getElementById("send-button");
+  const form = document.getElementById("chatForm");
+  const quickButtons = document.querySelectorAll(".quick-questions button");
 
-    if (input) {
-        input.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                sendMessage();
-            }
-        });
-    }
+  if (form) {
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      sendMessage();
+    });
+  }
 
-    if (button) {
-        button.addEventListener("click", sendMessage);
-    }
+  quickButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const question = button.getAttribute("data-question");
+      sendMessage(question);
+    });
+  });
 
-    loadKnowledge();
+  loadKnowledge();
 });
