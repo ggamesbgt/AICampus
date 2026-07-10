@@ -1,0 +1,50 @@
+[
+  {
+    "category": "Akademik",
+    "question": "Bagaimana cara mengisi KRS?",
+    "keywords": ["krs", "isi krs", "pengisian krs", "mata kuliah"],
+    "answer": "Pengisian KRS dilakukan melalui sistem akademik kampus sesuai jadwal yang ditetapkan. Pastikan tidak ada kendala administrasi dan konsultasikan mata kuliah dengan dosen pembimbing akademik jika diperlukan."
+  },
+  {
+    "category": "Akademik",
+    "question": "Bagaimana cara melihat KHS?",
+    "keywords": ["khs", "nilai", "hasil studi", "kartu hasil studi"],
+    "answer": "KHS dapat dilihat melalui sistem akademik kampus pada menu nilai atau kartu hasil studi. Jika nilai belum muncul, silakan konfirmasi ke dosen pengampu atau admin program studi."
+  },
+  {
+    "category": "IT Support",
+    "question": "Bagaimana cara reset password LMS?",
+    "keywords": ["lms", "password lms", "reset lms", "lupa password"],
+    "answer": "Untuk reset password LMS, gunakan fitur lupa password pada halaman login LMS. Jika belum berhasil, silakan menghubungi helpdesk IT kampus dengan menyertakan nama, NIM/NIDN, dan email kampus."
+  },
+  {
+    "category": "IT Support",
+    "question": "Bagaimana cara mengakses email kampus?",
+    "keywords": ["email", "email kampus", "akun email", "akses email"],
+    "answer": "Email kampus dapat diakses melalui layanan email resmi yang disediakan kampus. Gunakan akun dan password yang telah diberikan. Jika belum memiliki akun, silakan menghubungi admin IT atau admin program studi."
+  },
+  {
+    "category": "IT Support",
+    "question": "Bagaimana cara mengakses WiFi kampus?",
+    "keywords": ["wifi", "internet", "jaringan", "akses wifi"],
+    "answer": "Untuk mengakses WiFi kampus, pilih jaringan resmi kampus, lalu login menggunakan akun mahasiswa, dosen, atau tenaga kependidikan. Jika gagal login, silakan laporkan ke helpdesk IT."
+  },
+  {
+    "category": "Administrasi",
+    "question": "Bagaimana cara membuat surat aktif kuliah?",
+    "keywords": ["surat aktif", "surat aktif kuliah", "administrasi", "surat mahasiswa"],
+    "answer": "Permohonan surat aktif kuliah dapat diajukan melalui layanan administrasi akademik atau admin fakultas/prodi. Siapkan data seperti nama, NIM, program studi, dan keperluan surat."
+  },
+  {
+    "category": "Administrasi",
+    "question": "Bagaimana cara melakukan pembayaran kuliah?",
+    "keywords": ["pembayaran", "bayar kuliah", "biaya kuliah", "tagihan"],
+    "answer": "Informasi pembayaran kuliah dapat dilihat melalui sistem akademik atau portal keuangan kampus. Pastikan nominal dan nomor pembayaran sesuai dengan tagihan yang tertera."
+  },
+  {
+    "category": "Fakultas/Prodi",
+    "question": "Bagaimana cara menghubungi admin program studi?",
+    "keywords": ["admin prodi", "kontak prodi", "program studi", "fakultas"],
+    "answer": "Admin program studi dapat dihubungi melalui kontak resmi fakultas/prodi. Silakan gunakan kanal resmi kampus agar permintaan layanan dapat tercatat dengan baik."
+  }
+]

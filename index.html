@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Helpdesk Chatbot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-wrapper">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Helpdesk Kampus</p>
+        <h1>Asisten Layanan Kampus</h1>
+        <p class="subtitle">
+          Chatbot sederhana untuk membantu mahasiswa, dosen, dan tenaga kependidikan mendapatkan informasi layanan akademik, administrasi, dan IT support.
+        </p>
+      </div>
+    </section>
+
+    <section class="chat-card" aria-label="Chatbot Helpdesk Kampus">
+      <div class="chat-header">
+        <div class="avatar">H</div>
+        <div>
+          <h2>Helpdesk Bot</h2>
+          <p>Online · Siap membantu</p>
+        </div>
+      </div>
+
+      <div id="chatMessages" class="chat-messages">
+        <div class="message bot-message">
+          Halo! Saya Helpdesk Bot. Silakan tanyakan layanan kampus, seperti KRS, LMS, email kampus, pembayaran, atau surat aktif kuliah.
+        </div>
+      </div>
+
+      <div class="quick-questions">
+        <button type="button" data-question="Bagaimana cara mengisi KRS?">KRS</button>
+        <button type="button" data-question="Bagaimana cara reset password LMS?">Reset LMS</button>
+        <button type="button" data-question="Bagaimana cara membuat surat aktif kuliah?">Surat Aktif</button>
+        <button type="button" data-question="Bagaimana cara mengakses WiFi kampus?">WiFi</button>
+      </div>
+
+      <form id="chatForm" class="chat-input-area">
+        <input
+          id="userInput"
+          type="text"
+          placeholder="Tulis pertanyaan Anda..."
+          autocomplete="off"
+          required
+        />
+        <button type="submit">Kirim</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
